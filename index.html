@@ -1,305 +1,1077 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Master & Kids Academy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chess Academy & Play</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        chessDark: '#262626',
+                        chessLight: '#f5f5f5',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .square-light { background-color: #f0d9b5; }
-        .square-dark { background-color: #b58863; }
-        .board-border { background-color: #8b5a2b; }
-        
-        .chess-square {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            position: relative;
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
         }
-        .chess-piece-img {
-            width: 82%;
-            height: 82%;
-            object-fit: contain;
-            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
-            transition: transform 0.1s ease;
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
-        .chess-square:hover .chess-piece-img {
-            transform: scale(1.1);
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col">
+<body class="bg-gradient-to-br from-slate-100 via-zinc-100 to-neutral-200 text-slate-800 h-full flex flex-col antialiased select-none">
 
-    <!-- Header -->
-    <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-md sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-4">
-            <div class="flex items-center space-x-3">
-                <div class="bg-amber-600 text-white font-black p-2 rounded-xl text-xl shadow">♟️</div>
-                <div>
-                    <h1 class="text-lg font-bold tracking-tight">Chess & Kids Academy</h1>
-                    <p class="text-xs text-slate-400">Play, Learn & Listen in 5 Languages</p>
-                </div>
+    <!-- Top Header -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-sm">
+        <div class="flex items-center space-x-2">
+            <div class="bg-slate-900 p-2 rounded-xl text-white shadow-md">
+                <i data-lucide="crown" class="w-6 h-6"></i>
             </div>
+            <div>
+                <h1 class="font-bold text-lg text-slate-900 leading-tight">Chess Academy</h1>
+                <p class="text-xs text-slate-500" id="header-subtitle">Learn & Play Multi-Lingual</p>
+            </div>
+        </div>
 
+        <div class="flex items-center space-x-2">
             <!-- Language Selector -->
-            <div class="flex items-center space-x-2">
-                <span class="text-xs font-semibold text-slate-400">Audio Lang:</span>
-                <select id="langSelect" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-500">
-                    <option value="en-US">English</option>
-                    <option value="nl-NL">Nederlands (Dutch)</option>
-                    <option value="fr-FR">Français (French)</option>
-                    <option value="hi-IN">हिन्दी (Hindi)</option>
-                    <option value="gu-IN">ગુજરાતી (Gujarati)</option>
+            <div class="relative">
+                <select id="language-select" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 transition cursor-pointer">
+                    <option value="en-US">🇬🇧 English</option>
+                    <option value="nl-NL">🇳🇱 Nederlands</option>
+                    <option value="fr-FR">🇫🇷 Français</option>
+                    <option value="hi-IN">🇮🇳 हिन्दी</option>
+                    <option value="gu-IN">🇮🇳 ગુજરાતી</option>
                 </select>
             </div>
         </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="bg-slate-900/50 border-b border-slate-800/60 p-2">
-        <div class="max-w-4xl mx-auto flex justify-center space-x-2 sm:space-x-4">
-            <button onclick="switchTab('play')" id="tab-play" class="px-4 py-2 text-sm font-semibold rounded-lg bg-amber-600 text-white transition shadow">Play Chess</button>
-            <button onclick="switchTab('tutorials')" id="tab-tutorials" class="px-4 py-2 text-sm font-semibold rounded-lg text-slate-300 hover:bg-slate-800 transition">Kids & Adult Tutorials</button>
-        </div>
-    </nav>
-
     <!-- Main Content Area -->
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6">
-        
-        <!-- PLAY TAB -->
-        <div id="section-play" class="space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl gap-4">
+    <main class="flex-1 overflow-y-auto pb-20 max-w-md mx-auto w-full p-4 flex flex-col">
+
+        <!-- VIEW 1: PLAY MODE -->
+        <div id="view-play" class="view-section flex-1 flex flex-col space-y-4">
+            <!-- Play Controls / Status -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex items-center justify-between">
                 <div>
-                    <h2 id="turnIndicator" class="font-bold text-lg text-white">White's Turn</h2>
-                    <p id="gameStatus" class="text-xs text-slate-400">Select a piece to move</p>
+                    <span id="turn-indicator" class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white">
+                        <span class="w-2 h-2 mr-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                        White's Turn
+                    </span>
+                    <p id="game-status" class="text-xs text-slate-500 mt-1">Select a piece to move</p>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="resetGame()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium rounded-xl transition">New Game</button>
-                    <button onclick="speakText('Your turn to play! Think carefully.')" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm rounded-xl transition" title="Read status aloud">🔊</button>
+                <div class="flex space-x-1">
+                    <button onclick="resetGame()" title="New Game" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition">
+                        <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="toggleAIMode()" id="ai-toggle-btn" title="Toggle AI Mode" class="p-2 bg-slate-900 text-white hover:bg-slate-800 rounded-xl transition flex items-center space-x-1 text-xs font-semibold px-3 shadow-sm">
+                        <i data-lucide="bot" class="w-4 h-4"></i>
+                        <span id="ai-mode-text">vs AI</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Chess Board Container with Coordinates -->
-            <div class="flex justify-center">
-                <div class="board-border p-3 rounded-2xl shadow-2xl inline-block">
-                    <div id="chessBoard" class="grid grid-cols-8 w-full max-w-[420px] rounded-lg overflow-hidden border border-[#5c3a21]">
-                        <!-- Generated via JS -->
+            <!-- Chess Board Container (Classic Black & White Theme) -->
+            <div class="bg-slate-900 p-3 rounded-3xl shadow-xl border-4 border-slate-800 relative aspect-square w-full max-w-[380px] mx-auto flex items-center justify-center">
+                <div id="chess-board" class="w-full h-full grid grid-cols-8 grid-rows-8 rounded-lg overflow-hidden shadow-inner border border-slate-700">
+                    <!-- Board cells populated by JS -->
+                </div>
+            </div>
+
+            <!-- Difficulty & Stats Bar -->
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 flex justify-between items-center text-xs text-slate-600">
+                <div class="flex items-center space-x-2">
+                    <span class="font-semibold text-slate-700">AI Level:</span>
+                    <button onclick="setAIDifficulty(1)" id="diff-1" class="px-2 py-1 rounded bg-slate-900 text-white font-medium">Easy</button>
+                    <button onclick="setAIDifficulty(2)" id="diff-2" class="px-2 py-1 rounded bg-slate-200 text-slate-700 font-medium">Medium</button>
+                </div>
+                <div id="captured-display" class="font-mono text-sm tracking-widest text-slate-500"></div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: TUTORIALS MODE -->
+        <div id="view-tutorials" class="view-section hidden flex-1 flex flex-col space-y-4">
+            <div class="bg-gradient-to-r from-slate-900 to-zinc-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+                <div class="relative z-10">
+                    <h2 class="text-xl font-bold mb-1" id="tut-header-title">Chess Grandmaster Academy</h2>
+                    <p class="text-xs text-slate-300 mb-3" id="tut-header-desc">Learn piece movements and basic strategies with interactive audio guides in your native language!</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-white/10 text-white px-2.5 py-1 rounded-full text-xs font-semibold" id="lesson-progress-badge">Lesson 1 of 6</span>
                     </div>
+                </div>
+                <div class="absolute -right-4 -bottom-6 opacity-10">
+                    <i data-lucide="graduation-cap" class="w-36 h-36"></i>
+                </div>
+            </div>
+
+            <!-- Lesson Selector Tabs -->
+            <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-none" id="lesson-tabs">
+                <!-- Populated via JS -->
+            </div>
+
+            <!-- Active Lesson Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex-1 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 id="lesson-title" class="font-bold text-lg text-slate-900">The Pawn</h3>
+                        <button onclick="speakCurrentLesson()" class="bg-slate-100 hover:bg-slate-200 text-slate-900 p-2.5 rounded-xl transition flex items-center space-x-1.5 shadow-sm">
+                            <i data-lucide="volume-2" class="w-5 h-5"></i>
+                            <span class="text-xs font-bold" id="speak-btn-text">Listen</span>
+                        </button>
+                    </div>
+                    <p id="lesson-desc" class="text-sm text-slate-600 leading-relaxed mb-4">
+                        Pawns move forward one square, but capture diagonally. On their very first move, they can jump forward two squares!
+                    </p>
+
+                    <!-- Mini interactive demo board for the lesson -->
+                    <div class="bg-slate-900 p-2 rounded-2xl shadow-inner border-2 border-slate-800 mb-4 max-w-[280px] mx-auto aspect-square">
+                        <div id="lesson-board" class="w-full h-full grid grid-cols-8 grid-rows-8 rounded overflow-hidden"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                    <button onclick="prevLesson()" id="prev-lesson-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center space-x-1">
+                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                        <span id="btn-prev-text">Previous</span>
+                    </button>
+                    <button onclick="nextLesson()" id="next-lesson-btn" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition flex items-center space-x-1 shadow-md">
+                        <span id="btn-next-text">Next Lesson</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- TUTORIALS TAB -->
-        <div id="section-tutorials" class="hidden space-y-6">
-            <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
-                <h2 class="text-xl font-bold mb-2">Interactive Chess Academy for Kids & Beginners</h2>
-                <p class="text-sm text-slate-400 mb-6">Click any lesson below to read and hear the audio guidance in your selected language!</p>
+        <!-- VIEW 3: PUZZLES / CHALLENGES -->
+        <div id="view-puzzles" class="view-section hidden flex-1 flex flex-col space-y-4">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 text-center">
+                <div class="w-12 h-12 bg-slate-100 text-slate-900 rounded-2xl mx-auto flex items-center justify-center mb-3 shadow-sm">
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-lg font-bold text-slate-900" id="puzzle-title-text">Daily Chess Puzzles</h2>
+                <p class="text-xs text-slate-500 mt-1" id="puzzle-desc-text">Solve quick checkmate challenges to earn stars!</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col items-center">
+                <div class="flex justify-between w-full mb-3 text-xs font-semibold text-slate-600">
+                    <span id="puzzle-num-label">Puzzle #1</span>
+                    <span id="puzzle-stars" class="text-amber-500">⭐ 3/3 Stars</span>
+                </div>
+                <div class="bg-slate-900 p-2 rounded-2xl shadow-inner border-2 border-slate-800 mb-4 max-w-[280px] w-full aspect-square">
+                    <div id="puzzle-board" class="w-full h-full grid grid-cols-8 grid-rows-8 rounded overflow-hidden"></div>
+                </div>
+                <p id="puzzle-instruction" class="text-xs text-slate-700 font-medium text-center mb-3">White to move and checkmate in 1 move!</p>
+                <button onclick="resetPuzzle()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition" id="reset-puzzle-text">
+                    Reset Puzzle
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 4: PROFILE & STARS -->
+        <div id="view-profile" class="view-section hidden flex-1 flex flex-col space-y-4">
+            <div class="bg-gradient-to-br from-slate-900 to-zinc-800 rounded-3xl p-6 text-white text-center shadow-lg relative overflow-hidden">
+                <div class="w-20 h-20 bg-white/10 rounded-full mx-auto flex items-center justify-center mb-3 border-4 border-white/20 text-3xl shadow-inner">
+                    ♟️
+                </div>
+                <h2 class="text-xl font-bold" id="profile-name">Chess Explorer</h2>
+                <p class="text-xs text-slate-300 mt-0.5" id="profile-rank">Grandmaster in Training</p>
                 
-                <div class="grid sm:grid-cols-2 gap-4">
-                    <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">Basics</span>
-                            <h3 class="font-bold text-base mt-2">1. The Pawn's Journey</h3>
-                            <p class="text-xs text-slate-400 mt-1">Pawns move forward one square, but capture diagonally. On their first move, they can jump two squares!</p>
-                        </div>
-                        <button onclick="startLesson('The Pawn moves forward one square, and captures diagonally. On its first move, it can jump two squares forward!')" class="mt-4 w-full py-2 bg-slate-800 hover:bg-slate-700 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition">
-                            <span>🔊 Listen to Lesson</span>
-                        </button>
+                <div class="grid grid-cols-3 gap-2 mt-6 pt-4 border-t border-white/10">
+                    <div>
+                        <div class="text-xl font-extrabold" id="stat-wins">0</div>
+                        <div class="text-[10px] text-slate-400 uppercase tracking-wider" id="stat-wins-label">Wins</div>
                     </div>
-
-                    <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-wider text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded">Pieces</span>
-                            <h3 class="font-bold text-base mt-2">2. The Mighty Rook</h3>
-                            <p class="text-xs text-slate-400 mt-1">The Rook moves in straight lines—up, down, left, or right—as far as it wants across open squares.</p>
-                        </div>
-                        <button onclick="startLesson('The Rook moves in straight lines, up, down, left, or right, across any number of vacant squares.')" class="mt-4 w-full py-2 bg-slate-800 hover:bg-slate-700 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition">
-                            <span>🔊 Listen to Lesson</span>
-                        </button>
+                    <div>
+                        <div class="text-xl font-extrabold" id="stat-lessons">1/6</div>
+                        <div class="text-[10px] text-slate-400 uppercase tracking-wider" id="stat-lessons-label">Lessons</div>
                     </div>
-
-                    <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-wider text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded">Strategy</span>
-                            <h3 class="font-bold text-base mt-2">3. Protecting the King</h3>
-                            <p class="text-xs text-slate-400 mt-1">The King is the most important piece! If trapped in checkmate, the game is over. Always keep him safe behind your pawns.</p>
-                        </div>
-                        <button onclick="startLesson('The King is your most important piece. Keep him safe behind your pawns and castle early!')" class="mt-4 w-full py-2 bg-slate-800 hover:bg-slate-700 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition">
-                            <span>🔊 Listen to Lesson</span>
-                        </button>
-                    </div>
-
-                    <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
-                        <div>
-                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded">Tactics</span>
-                            <h3 class="font-bold text-base mt-2">4. The Clever Knight</h3>
-                            <p class="text-xs text-slate-400 mt-1">Knights move in an L-shape (two squares one way, and one square perpendicular) and are the only pieces that can jump over others!</p>
-                        </div>
-                        <button onclick="startLesson('The Knight moves in an L-shape and can jump over other pieces on the board.')" class="mt-4 w-full py-2 bg-slate-800 hover:bg-slate-700 text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition">
-                            <span>🔊 Listen to Lesson</span>
-                        </button>
+                    <div>
+                        <div class="text-xl font-extrabold" id="stat-stars">⭐ 12</div>
+                        <div class="text-[10px] text-slate-400 uppercase tracking-wider" id="stat-stars-label">Stars</div>
                     </div>
                 </div>
             </div>
+
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+                <h3 class="font-bold text-sm text-slate-900" id="settings-title">App Settings & Audio</h3>
+                <div class="flex items-center justify-between py-2 border-b border-slate-100">
+                    <span class="text-xs text-slate-600 font-medium" id="sound-effects-label">Sound Effects</span>
+                    <input type="checkbox" id="sound-toggle" checked class="w-4 h-4 text-slate-900 rounded focus:ring-slate-900 cursor-pointer">
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <span class="text-xs text-slate-600 font-medium" id="auto-voice-label">Auto-read Tutorials</span>
+                    <input type="checkbox" id="autovoice-toggle" class="w-4 h-4 text-slate-900 rounded focus:ring-slate-900 cursor-pointer">
+                </div>
+            </div>
         </div>
+
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-900 mt-auto">
-        Chess & Kids Academy • Multi-lingual Audio Enabled
-    </footer>
+    <!-- Bottom Navigation Bar -->
+    <nav class="bg-white/95 backdrop-blur-md border-t border-slate-200 fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 px-6 py-2 flex justify-between items-center shadow-lg">
+        <button onclick="switchView('play')" id="nav-play" class="nav-btn flex flex-col items-center text-slate-900 transition">
+            <i data-lucide="gamepad-2" class="w-5 h-5"></i>
+            <span class="text-[10px] font-semibold mt-1" id="nav-text-play">Play</span>
+        </button>
+        <button onclick="switchView('tutorials')" id="nav-tutorials" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+            <span class="text-[10px] font-semibold mt-1" id="nav-text-tutorials">Learn</span>
+        </button>
+        <button onclick="switchView('puzzles')" id="nav-puzzles" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+            <i data-lucide="puzzle" class="w-5 h-5"></i>
+            <span class="text-[10px] font-semibold mt-1" id="nav-text-puzzles">Puzzles</span>
+        </button>
+        <button onclick="switchView('profile')" id="nav-profile" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-600 transition">
+            <i data-lucide="user" class="w-5 h-5"></i>
+            <span class="text-[10px] font-semibold mt-1" id="nav-text-profile">Profile</span>
+        </button>
+    </nav>
 
-    <!-- JavaScript Logic with Reliable Vector Piece URLs -->
+    <!-- Message Toast / Modal Notification -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs font-medium z-50 opacity-0 pointer-events-none transition-all duration-300 flex items-center space-x-2 border border-slate-700">
+        <i data-lucide="info" class="w-4 h-4 text-slate-300"></i>
+        <span id="toast-msg">Notification message</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
     <script>
-        function switchTab(tab) {
-            if (tab === 'play') {
-                document.getElementById('section-play').classList.remove('hidden');
-                document.getElementById('section-tutorials').classList.add('hidden');
-                document.getElementById('tab-play').className = "px-4 py-2 text-sm font-semibold rounded-lg bg-amber-600 text-white transition shadow";
-                document.getElementById('tab-tutorials').className = "px-4 py-2 text-sm font-semibold rounded-lg text-slate-300 hover:bg-slate-800 transition";
-            } else {
-                document.getElementById('section-play').classList.add('hidden');
-                document.getElementById('section-tutorials').classList.remove('hidden');
-                document.getElementById('tab-tutorials').className = "px-4 py-2 text-sm font-semibold rounded-lg bg-amber-600 text-white transition shadow";
-                document.getElementById('tab-play').className = "px-4 py-2 text-sm font-semibold rounded-lg text-slate-300 hover:bg-slate-800 transition";
+        // Multi-lingual Translations Dictionary
+        const translations = {
+            'en-US': {
+                headerSubtitle: 'Learn & Play Multi-Lingual',
+                turnWhite: "White's Turn",
+                turnBlack: "Black's Turn",
+                selectPiece: 'Select a piece to move',
+                aiModeText: 'vs AI',
+                pvpModeText: '2-Player',
+                navPlay: 'Play',
+                navLearn: 'Learn',
+                navPuzzles: 'Puzzles',
+                navProfile: 'Profile',
+                tutHeaderTitle: 'Chess Grandmaster Academy',
+                tutHeaderDesc: 'Learn piece movements and basic strategies with interactive audio guides in your native language!',
+                listenBtn: 'Listen',
+                prevBtn: 'Previous',
+                nextBtn: 'Next Lesson',
+                puzzleTitle: 'Daily Chess Puzzles',
+                puzzleDesc: 'Solve quick checkmate challenges to earn stars!',
+                resetPuzzle: 'Reset Puzzle',
+                profileName: 'Chess Explorer',
+                profileRank: 'Grandmaster in Training',
+                wins: 'Wins',
+                lessons: 'Lessons',
+                stars: 'Stars',
+                settingsTitle: 'App Settings & Audio',
+                soundEffects: 'Sound Effects',
+                autoVoice: 'Auto-read Tutorials',
+                diffEasy: 'Easy',
+                diffMed: 'Medium',
+                checkmateMsg: 'Checkmate! Game Over!',
+                checkMsg: 'Check!'
+            },
+            'nl-NL': {
+                headerSubtitle: 'Leren & Spelen Meertalig',
+                turnWhite: 'Zet van Wit',
+                turnBlack: 'Zet van Zwart',
+                selectPiece: 'Selecteer een stuk',
+                aiModeText: 'tegen AI',
+                pvpModeText: '2-Spelers',
+                navPlay: 'Spelen',
+                navLearn: 'Leren',
+                navPuzzles: 'Puzzels',
+                navProfile: 'Profiel',
+                tutHeaderTitle: 'Schaak Grootmeester Academie',
+                tutHeaderDesc: 'Leer stukbewegingen en strategieën met interactieve audiogidsen!',
+                listenBtn: 'Luister',
+                prevBtn: 'Vorige',
+                nextBtn: 'Volgende',
+                puzzleTitle: 'Dagelijkse Puzzels',
+                puzzleDesc: 'Los snelle mat-puzzels op en verdien sterren!',
+                resetPuzzle: 'Reset Puzzel',
+                profileName: 'Schaak Ontdekkers',
+                profileRank: 'Grootmeester in opleiding',
+                wins: 'Winst',
+                lessons: 'Lessen',
+                stars: 'Sterren',
+                settingsTitle: 'Instellingen & Geluid',
+                soundEffects: 'Geluidseffecten',
+                autoVoice: 'Automatisch voorlezen',
+                diffEasy: 'Makkelijk',
+                diffMed: 'Gemiddeld',
+                checkmateMsg: 'Mat! Spel afgelopen!',
+                checkMsg: 'Schaak!'
+            },
+            'fr-FR': {
+                headerSubtitle: 'Apprendre et Jouer Multilingue',
+                turnWhite: 'Tour des Blancs',
+                turnBlack: 'Tour des Noirs',
+                selectPiece: 'Sélectionnez une pièce',
+                aiModeText: 'contre IA',
+                pvpModeText: '2 Joueurs',
+                navPlay: 'Jouer',
+                navLearn: 'Apprendre',
+                navPuzzles: 'Énigmes',
+                navProfile: 'Profil',
+                tutHeaderTitle: "Académie d'Échecs",
+                tutHeaderDesc: 'Apprenez les mouvements des pièces et des stratégies avec des guides audio !',
+                listenBtn: 'Écouter',
+                prevBtn: 'Précédent',
+                nextBtn: 'Suivant',
+                puzzleTitle: 'Énigmes Quotidiennes',
+                puzzleDesc: 'Résolvez des mats rapides pour gagner des étoiles !',
+                resetPuzzle: "Recommencer l'énigme",
+                profileName: 'Explorateur d’Échecs',
+                profileRank: 'Grand Maître en Herbe',
+                wins: 'Victoires',
+                lessons: 'Leçons',
+                stars: 'Étoiles',
+                settingsTitle: 'Paramètres et Audio',
+                soundEffects: 'Effets Sonores',
+                autoVoice: 'Lecture auto',
+                diffEasy: 'Facile',
+                diffMed: 'Moyen',
+                checkmateMsg: 'Échec et mat ! Partie terminée !',
+                checkMsg: 'Échec !'
+            },
+            'hi-IN': {
+                headerSubtitle: 'शतरंज सीखें और खेलें (बहुभाषी)',
+                turnWhite: "सफेद की चाल",
+                turnBlack: "काले की चाल",
+                selectPiece: 'चलने के लिए मोहरा चुनें',
+                aiModeText: 'कंप्यूटर vs',
+                pvpModeText: '2 खिलाड़ी',
+                navPlay: 'खेलें',
+                navLearn: 'सीखें',
+                navPuzzles: 'पहेलियाँ',
+                navProfile: 'प्रोफ़ाइल',
+                tutHeaderTitle: 'शतरंज ग्रैंडमास्टर अकादमी',
+                tutHeaderDesc: 'अपनी भाषा में ऑडियो गाइड के साथ शतरंज के नियम और चालें सीखें!',
+                listenBtn: 'सुने',
+                prevBtn: 'पिछला',
+                nextBtn: 'अगला',
+                puzzleTitle: 'दैनिक शतरंज पहेलियाँ',
+                puzzleDesc: 'स्टार जीतने के लिए त्वरित शह और मात पहेलियाँ हल करें!',
+                resetPuzzle: 'रीसेट करें',
+                profileName: 'शतरंज एक्सप्लोरर',
+                profileRank: 'प्रशिक्षणरत ग्रैंडमास्टर',
+                wins: 'जीत',
+                lessons: 'पाठ',
+                stars: 'तारे',
+                settingsTitle: 'सेटिंग्स और ऑडियो',
+                soundEffects: 'ध्वनि प्रभाव',
+                autoVoice: 'ऑटो-रीड ट्यूटोरियल',
+                diffEasy: 'आसान',
+                diffMed: 'मध्यम',
+                checkmateMsg: 'शह और मात! खेल समाप्त!',
+                checkMsg: 'शह!'
+            },
+            'gu-IN': {
+                headerSubtitle: 'ચેસ શીખો અને રમો (બહુભাষી)',
+                turnWhite: "સફેદની चाल",
+                turnBlack: "કાળાની चाल",
+                selectPiece: 'ખસેડવા માટે મોહરું પસંદ કરો',
+                aiModeText: 'AI સામે',
+                pvpModeText: '૨ ખેલાડી',
+                navPlay: 'રમો',
+                navLearn: 'શીખો',
+                navPuzzles: 'કોયડાઓ',
+                navProfile: 'પ્રોફાઇલ',
+                tutHeaderTitle: 'ચેસ ગ્રાન્ડમાસ્ટર એકેडमी',
+                tutHeaderDesc: 'તમારી ભાષામાં ઓડિયો ગાઈડ સાથે ચેસના નિયમો અને ચાલ શીખો!',
+                listenBtn: 'સાંભળો',
+                prevBtn: 'પાછલા',
+                nextBtn: 'આગળ',
+                puzzleTitle: 'દૈનિક ચેસ કોયડાઓ',
+                puzzleDesc: 'તારા જીતવા માટે ઝડપી ચેકમેટ કોયડાઓ ઉકેલો!',
+                resetPuzzle: 'રીસેટ કરો',
+                profileName: 'ચેસ એક્સપ્લોરર',
+                profileRank: 'ગ્રાન્ડમાસ્ટર ટ્રેઈની',
+                wins: 'જીત',
+                lessons: 'પાઠ',
+                stars: 'તારા',
+                settingsTitle: 'સેટિંગ્સ અને ઓડિયો',
+                soundEffects: 'ધ્વનિ અસરો',
+                autoVoice: 'ઓટો-રીડ ટ્યુટોરિયલ્સ',
+                diffEasy: 'સહેલું',
+                diffMed: 'મધ્યમ',
+                checkmateMsg: 'ચેકમેટ! રમત સમાપ્ત!',
+                checkMsg: 'ચેક!'
+            }
+        };
+
+        // Lesson Data in Multi-lingual
+        const lessonsData = [
+            {
+                title: { 'en-US': '1. The Pawn (सैनिक)', 'nl-NL': '1. De Pion', 'fr-FR': '1. Le Pion', 'hi-IN': '1. प्यादा (Pawn)', 'gu-IN': '1. પ્યાદુ (Pawn)' },
+                desc: { 
+                    'en-US': 'Pawns march straight ahead one square, but capture diagonally. On their very first step, they can jump two squares forward!',
+                    'nl-NL': 'Pionnen lopen één veld recht vooruit, maar slaan diagonaal. Bij hun eerste zet mogen ze twee velden vooruit!',
+                    'fr-FR': 'Les pions avancent d’une case mais capturent en diagonale. Au premier coup, ils peuvent sauter de deux cases !',
+                    'hi-IN': 'प्यादे सीधे एक कदम आगे बढ़ते हैं, लेकिन तिरछे मोहरे काटते हैं। पहली चाल में वे दो कदम चल सकते हैं!',
+                    'gu-IN': 'પ્યાદાઓ સીધા એક ખાના આગળ વધે છે, પણ ત્રાંસા મારે છે. પ્રથમ ચાલમાં તે બે ખાના આગળ વધી શકે છે!'
+                },
+                setup: [
+                    { r: 6, c: 3, p: 'P', color: 'w' },
+                    { r: 4, c: 3, p: 'P', color: 'w' },
+                    { r: 3, c: 4, p: 'p', color: 'b' }
+                ]
+            },
+            {
+                title: { 'en-US': '2. The Rook (हाथी)', 'nl-NL': '2. De Toren', 'fr-FR': '2. La Tour', 'hi-IN': '2. हाथी (Rook)', 'gu-IN': '2. હાથી (Rook)' },
+                desc: { 
+                    'en-US': 'Rooks move in straight lines—up, down, left, or right—as far as they want along open ranks and files.',
+                    'nl-NL': 'Torens bewegen in rechte lijnen verticaal en horizontaal zo ver als ze willen.',
+                    'fr-FR': 'Les tours se déplacent en lignes droites, horizontalement ou verticalement, sur autant de cases libres.',
+                    'hi-IN': 'हाथी सीधी रेखाओं में - ऊपर, नीचे, बाएं या दाएं - जितने चाहें उतने खाली घर चल सकता है।',
+                    'gu-IN': 'હાથી સીધી રેખાઓમાં - ઉપર, નીચે, ડાબે કે જમણે - ગમે તેટલા ખાના સુધી ચાલી શકે છે.'
+                },
+                setup: [
+                    { r: 4, c: 3, p: 'R', color: 'w' },
+                    { r: 1, c: 3, p: 'p', color: 'b' }
+                ]
+            },
+            {
+                title: { 'en-US': '3. The Knight (घोड़ा)', 'nl-NL': '3. Het Paard', 'fr-FR': '3. Le Cavalier', 'hi-IN': '3. घोड़ा (Knight)', 'gu-IN': '3. ઘોડો (Knight)' },
+                desc: { 
+                    'en-US': 'Knights move in an L-shape: two squares in one direction and then one square perpendicular. They can jump over other pieces!',
+                    'nl-NL': 'Paarden springen in een L-vorm: twee velden in één richting en één veld opzij. Ze kunnen over andere stukken springen!',
+                    'fr-FR': 'Les cavaliers se déplacent en L : deux cases dans une direction et une perpendiculaire. Ils peuvent sauter par-dessus les autres !',
+                    'hi-IN': 'घोड़ा "L" आकार में चलता है: दो कदम एक दिशा में और फिर एक कदम साइड में। यह अन्य मोहरों के ऊपर से कूद सकता है!',
+                    'gu-IN': 'ઘોડો "L" આકારમાં ચાલે છે: બે ખાના એક દિશામાં અને એક ખાનું બાજુમાં. તે અન્ય મોહરાઓ ઉપરથી કૂદી શકે છે!'
+                },
+                setup: [
+                    { r: 4, c: 4, p: 'N', color: 'w' },
+                    { r: 2, c: 5, p: 'p', color: 'b' }
+                ]
+            },
+            {
+                title: { 'en-US': '4. The Bishop (ऊंट)', 'nl-NL': '4. De Loper', 'fr-FR': '4. Le Fou', 'hi-IN': '4. ऊंट (Bishop)', 'gu-IN': '4. ઊંટ (Bishop)' },
+                desc: { 
+                    'en-US': 'Bishops slide diagonally across the board, staying on the color square they started on throughout the game.',
+                    'nl-NL': 'Lopers bewegen schuin over het bord en blijven altijd op dezelfde kleur veld.',
+                    'fr-FR': 'Les fous se déplacent en diagonale sur le plateau, en restant sur la couleur de case de départ.',
+                    'hi-IN': 'ऊंट बोर्ड पर तिरछी दिशा में चलते हैं, और हमेशा अपने रंग के खानों पर रहते हैं।',
+                    'gu-IN': 'ઊંટ બોર્ડ પર ત્રાંસી દિશામાં ચાલે છે, અને હંમેશા પોતાના રંગના ખાના પર રહે છે.'
+                },
+                setup: [
+                    { r: 4, c: 4, p: 'B', color: 'w' },
+                    { r: 1, c: 7, p: 'p', color: 'b' }
+                ]
+            },
+            {
+                title: { 'en-US': '5. The Queen (वजीर/रानी)', 'nl-NL': '5. De Koningin', 'fr-FR': '5. La Dame', 'hi-IN': '5. वजीर (Queen)', 'gu-IN': '5. વજીર (Queen)' },
+                desc: { 
+                    'en-US': 'The Queen is the most powerful piece! She can move in any straight direction—horizontal, vertical, or diagonal—as far as she wants.',
+                    'nl-NL': 'De Koningin is het sterkste stuk! Ze kan in alle richtingen bewegen zover als ze wil.',
+                    'fr-FR': 'La dame est la pièce la plus puissante ! Elle peut se déplacer dans toutes les directions sur autant de cases.',
+                    'hi-IN': 'वजीर सबसे शक्तिशाली मोहरा है! यह किसी भी सीधी या तिरछी दिशा में जितने चाहे उतने कदम चल सकता है।',
+                    'gu-IN': 'વજીર સૌથી શક્તિશાળી મોહરું છે! તે કોઈપણ સીધી કે ત્રાંસી દિશામાં ગમે તેટલા ખાના ચાલી શકે છે.'
+                },
+                setup: [
+                    { r: 4, c: 4, p: 'Q', color: 'w' },
+                    { r: 1, c: 4, p: 'p', color: 'b' }
+                ]
+            },
+            {
+                title: { 'en-US': '6. The King (राजा)', 'nl-NL': '6. De Koning', 'fr-FR': '6. Le Roi', 'hi-IN': '6. राजा (King)', 'gu-IN': '6. રાજા (King)' },
+                desc: { 
+                    'en-US': 'The King is the most important piece. He moves one square in any direction, but he can never walk into check (danger)!',
+                    'nl-NL': 'De Koning is het belangrijkste stuk. Hij beweegt één veld in elke richting, maar mag nooit op een bedreigd veld stappen.',
+                    'fr-FR': 'Le Roi est la pièce la plus importante. Il se déplace d’une case dans n’importe quelle direction, mais jamais en échec !',
+                    'hi-IN': 'राजा सबसे महत्वपूर्ण मोहरा है। यह किसी भी दिशा में एक कदम चल सकता है, लेकिन खतरे में नहीं जा सकता!',
+                    'gu-IN': 'રાજા સૌથી મહત્વપૂર્ણ મોહરું છે. તે કોઈપણ દિશામાં એક ખાનું ચાલી શકે છે, પણ જોખમમાં જઈ શકતો નથી!'
+                },
+                setup: [
+                    { r: 4, c: 4, p: 'K', color: 'w' },
+                    { r: 3, c: 4, p: 'k', color: 'b' }
+                ]
+            }
+        ];
+
+        // State variables
+        let currentLang = 'en-US';
+        let currentLessonIndex = 0;
+        let isAIMode = true;
+        let aiDifficulty = 1;
+        let boardState = [];
+        let turn = 'w';
+        let selectedSquare = null;
+        let validMoves = [];
+        let userStats = { wins: 0, stars: 12 };
+
+        // High Quality Filled Chess SVGs for both White and Black pieces
+        // White pieces: Styled in rich polished pearl-white with bold dark outlines & drop shadows
+        // Black pieces: Styled in rich polished charcoal-black with light highlights & drop shadows
+        const pieceSvgs = {
+            'P': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.3 1.71.83 2.38C17.17 16.3 15 19.39 15 23c0 1.95.7 3.75 1.87 5.14C15.19 29.56 14 31.91 14 34.5v1.5h17v-1.5c0-2.59-1.19-4.94-2.87-6.36C29.3 26.75 30 24.95 30 23c0-3.61-2.17-6.7-4.33-7.66.53-.67.83-1.49.83-2.38 0-2.21-1.79-4-4-4z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 38h21v3H12z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'R': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"><path d="M14 11h3v3h-3v-3zm7 0h3v3h-3v-3zm7 0h3v3h-3v-3zM14 15h17v4H14v-4zm2 5h13v13H16V20z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 36h21v3H12z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'N': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"><path d="M22 10c-3 0-5.5 2.5-5.5 5.5 0 1.25.4 2.4 1.1 3.3L15 23c-1.5 1.5-2 4-2 6 0 2 1.5 3 3 3h14c1.5 0 3-1 3-3 0-2-.5-4.5-2-6l-2.6-3.7c.7-.9 1.1-2.05 1.1-3.3C27.5 12.5 25 10 22 10z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 36h21v3H12z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'B': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"><path d="M22.5 9c-1.66 0-3 1.34-3 3 0 .78.3 1.49.79 2.02C18.66 14.86 17 16.92 17 19.5c0 2.21 1.44 4.08 3.45 4.67-.79 1.36-1.45 2.89-1.95 4.58C17.38 29.35 16 31.25 16 33.5V36h13v-2.5c0-2.25-1.38-4.15-2.5-4.75-.5-1.69-1.16-3.22-1.95-4.58 2.01-.59 3.45-2.46 3.45-4.67 0-2.58-1.66-4.64-3.29-5.48.49-.53.79-1.24.79-2.02 0-1.66-1.34-3-3-3z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/><path d="M13 37h19v3H13z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'Q': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"><path d="M12 15l4 15h13l4-15-5.5 7L22.5 11 17.5 22 12 15z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="14" r="1.5" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/><circle cx="16.5" cy="11" r="1.5" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/><circle cx="22.5" cy="9.5" r="1.5" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/><circle cx="28.5" cy="11" r="1.5" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/><circle cx="33" cy="14" r="1.5" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/><path d="M13 36h19v3H13z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'K': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"><path d="M22.5 9v5m-2.5-2.5h5M15 19h15v3H15v-3zm1.5 3c0 4.5 2 7 6 7s6-2.5 6-7h-12z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 36h17v3H14z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            
+            'p': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.3 1.71.83 2.38C17.17 16.3 15 19.39 15 23c0 1.95.7 3.75 1.87 5.14C15.19 29.56 14 31.91 14 34.5v1.5h17v-1.5c0-2.59-1.19-4.94-2.87-6.36C29.3 26.75 30 24.95 30 23c0-3.61-2.17-6.7-4.33-7.66.53-.67.83-1.49.83-2.38 0-2.21-1.79-4-4-4z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 38h21v3H12z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'r': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]"><path d="M14 11h3v3h-3v-3zm7 0h3v3h-3v-3zm7 0h3v3h-3v-3zM14 15h17v4H14v-4zm2 5h13v13H16V20z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 36h21v3H12z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'n': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]"><path d="M22 10c-3 0-5.5 2.5-5.5 5.5 0 1.25.4 2.4 1.1 3.3L15 23c-1.5 1.5-2 4-2 6 0 2 1.5 3 3 3h14c1.5 0 3-1 3-3 0-2-.5-4.5-2-6l-2.6-3.7c.7-.9 1.1-2.05 1.1-3.3C27.5 12.5 25 10 22 10z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 36h21v3H12z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'b': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]"><path d="M22.5 9c-1.66 0-3 1.34-3 3 0 .78.3 1.49.79 2.02C18.66 14.86 17 16.92 17 19.5c0 2.21 1.44 4.08 3.45 4.67-.79 1.36-1.45 2.89-1.95 4.58C17.38 29.35 16 31.25 16 33.5V36h13v-2.5c0-2.25-1.38-4.15-2.5-4.75-.5-1.69-1.16-3.22-1.95-4.58 2.01-.59 3.45-2.46 3.45-4.67 0-2.58-1.66-4.64-3.29-5.48.49-.53.79-1.24.79-2.02 0-1.66-1.34-3-3-3z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/><path d="M13 37h19v3H13z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'q': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]"><path d="M12 15l4 15h13l4-15-5.5 7L22.5 11 17.5 22 12 15z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="14" r="1.5" fill="#18181b" stroke="#f8fafc" stroke-width="1.5"/><circle cx="16.5" cy="11" r="1.5" fill="#18181b" stroke="#f8fafc" stroke-width="1.5"/><circle cx="22.5" cy="9.5" r="1.5" fill="#18181b" stroke="#f8fafc" stroke-width="1.5"/><circle cx="28.5" cy="11" r="1.5" fill="#18181b" stroke="#f8fafc" stroke-width="1.5"/><circle cx="33" cy="14" r="1.5" fill="#18181b" stroke="#f8fafc" stroke-width="1.5"/><path d="M13 36h19v3H13z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+            'k': `<svg viewBox="0 0 45 45" class="w-9 h-9 drop-shadow-[0_2px_4px_rgba(255,255,255,0.4)]"><path d="M22.5 9v5m-2.5-2.5h5M15 19h15v3H15v-3zm1.5 3c0 4.5 2 7 6 7s6-2.5 6-7h-12z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 36h17v3H14z" fill="#18181b" stroke="#f8fafc" stroke-width="1.8" stroke-linejoin="round"/></svg>`
+        };
+
+        window.onload = function() {
+            lucide.createIcons();
+            initLanguageSelector();
+            initChessGame();
+            renderLessons();
+            renderPuzzle();
+            updateUILanguage();
+        };
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-slate-900');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('text-slate-900');
+
+            if(viewName === 'tutorials') {
+                renderLessonBoard();
+            } else if(viewName === 'play') {
+                renderBoard();
             }
         }
 
-        function speakText(text) {
-            if (!('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const lang = document.getElementById('langSelect').value;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = lang;
-            utterance.rate = 0.9;
-            window.speechSynthesis.speak(utterance);
+        function initLanguageSelector() {
+            const select = document.getElementById('language-select');
+            select.value = currentLang;
+            select.addEventListener('change', (e) => {
+                currentLang = e.target.value;
+                updateUILanguage();
+                renderLessons();
+                showToast(`Language changed to ${select.options[select.selectedIndex].text}`);
+            });
         }
 
-        function startLesson(text) {
-            speakText(text);
+        function updateUILanguage() {
+            const t = translations[currentLang];
+            document.getElementById('header-subtitle').innerText = t.headerSubtitle;
+            document.getElementById('ai-mode-text').innerText = isAIMode ? t.aiModeText : t.pvpModeText;
+            document.getElementById('nav-text-play').innerText = t.navPlay;
+            document.getElementById('nav-text-tutorials').innerText = t.navLearn;
+            document.getElementById('nav-text-puzzles').innerText = t.navPuzzles;
+            document.getElementById('nav-text-profile').innerText = t.navProfile;
+
+            document.getElementById('tut-header-title').innerText = t.tutHeaderTitle;
+            document.getElementById('tut-header-desc').innerText = t.tutHeaderDesc;
+            document.getElementById('speak-btn-text').innerText = t.listenBtn;
+            document.getElementById('btn-prev-text').innerText = t.prevBtn;
+            document.getElementById('btn-next-text').innerText = t.nextBtn;
+
+            document.getElementById('puzzle-title-text').innerText = t.puzzleTitle;
+            document.getElementById('puzzle-desc-text').innerText = t.puzzleDesc;
+            document.getElementById('reset-puzzle-text').innerText = t.resetPuzzle;
+
+            document.getElementById('profile-name').innerText = t.profileName;
+            document.getElementById('profile-rank').innerText = t.profileRank;
+            document.getElementById('stat-wins-label').innerText = t.wins;
+            document.getElementById('stat-lessons-label').innerText = t.lessons;
+            document.getElementById('stat-stars-label').innerText = t.stars;
+            document.getElementById('settings-title').innerText = t.settingsTitle;
+            document.getElementById('sound-effects-label').innerText = t.soundEffects;
+            document.getElementById('auto-voice-label').innerText = t.autoVoice;
+            document.getElementById('diff-1').innerText = t.diffEasy;
+            document.getElementById('diff-2').innerText = t.diffMed;
+
+            updateTurnIndicator();
         }
 
-        // Standard Wikimedia Chess Piece SVGs (Staunton style)
-        const PIECE_IMAGES = {
-            'r': 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg',
-            'n': 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg',
-            'b': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg',
-            'q': 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg',
-            'k': 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg',
-            'p': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
-            'R': 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
-            'N': 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg',
-            'B': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
-            'Q': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg',
-            'K': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
-            'P': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg'
-        };
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
 
-        let board = [
-            ['r','n','b','q','k','b','n','r'],
-            ['p','p','p','p','p','p','p','p'],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['','','','','','','',''],
-            ['P','P','P','P','P','P','P','P'],
-            ['R','N','B','Q','K','B','N','R']
-        ];
+        function playChime(type = 'move') {
+            const soundEnabled = document.getElementById('sound-toggle').checked;
+            if (!soundEnabled) return;
 
-        let turn = 'white';
-        let selectedSquare = null;
-        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                if (type === 'move') {
+                    osc.frequency.setValueAtTime(440, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.1);
+                } else if (type === 'capture') {
+                    osc.frequency.setValueAtTime(300, ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.15);
+                } else if (type === 'win') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.connect(g);
+                        g.connect(ctx.destination);
+                        o.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.08);
+                        g.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.3);
+                        o.start(ctx.currentTime + i * 0.08);
+                        o.stop(ctx.currentTime + i * 0.08 + 0.3);
+                    });
+                }
+            } catch(e) {}
+        }
+
+        function initChessGame() {
+            boardState = [
+                ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+                ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+                ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R']
+            ];
+            turn = 'w';
+            selectedSquare = null;
+            validMoves = [];
+            renderBoard();
+        }
+
+        function resetGame() {
+            initChessGame();
+            showToast('New Chess Game Started!');
+        }
+
+        function toggleAIMode() {
+            isAIMode = !isAIMode;
+            const t = translations[currentLang];
+            document.getElementById('ai-mode-text').innerText = isAIMode ? t.aiModeText : t.pvpModeText;
+            showToast(isAIMode ? 'Switched to Player vs AI Mode' : 'Switched to 2-Player Mode');
+            resetGame();
+        }
+
+        function setAIDifficulty(diff) {
+            aiDifficulty = diff;
+            document.getElementById('diff-1').className = diff === 1 ? 'px-2 py-1 rounded bg-slate-900 text-white font-medium' : 'px-2 py-1 rounded bg-slate-200 text-slate-700 font-medium';
+            document.getElementById('diff-2').className = diff === 2 ? 'px-2 py-1 rounded bg-slate-900 text-white font-medium' : 'px-2 py-1 rounded bg-slate-200 text-slate-700 font-medium';
+            showToast(`AI Difficulty set to ${diff === 1 ? 'Easy' : 'Medium'}`);
+        }
+
+        function updateTurnIndicator() {
+            const t = translations[currentLang];
+            const indicator = document.getElementById('turn-indicator');
+            if (turn === 'w') {
+                indicator.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-emerald-400 rounded-full animate-pulse"></span> ${t.turnWhite}`;
+                indicator.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-900 text-white";
+            } else {
+                indicator.innerHTML = `<span class="w-2 h-2 mr-1.5 bg-rose-400 rounded-full animate-pulse"></span> ${t.turnBlack}`;
+                indicator.className = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-zinc-700 text-white";
+            }
+        }
 
         function renderBoard() {
-            const boardEl = document.getElementById('chessBoard');
+            const boardEl = document.getElementById('chess-board');
             boardEl.innerHTML = '';
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const square = document.createElement('div');
                     const isDark = (r + c) % 2 === 1;
-                    let bgClass = isDark ? 'square-dark' : 'square-light';
-                    
+                    // Classic Black and White Board Theme Colors
+                    square.className = `flex items-center justify-center cursor-pointer relative transition-colors ${
+                        isDark ? 'bg-zinc-800 hover:bg-zinc-700 text-white' : 'bg-zinc-100 hover:bg-white text-zinc-900'
+                    }`;
+
                     if (selectedSquare && selectedSquare.r === r && selectedSquare.c === c) {
-                        bgClass = 'bg-amber-400/80';
+                        square.classList.add('ring-4', 'ring-slate-500', 'z-10', 'bg-zinc-300');
                     }
 
-                    square.className = `chess-square ${bgClass}`;
-                    
-                    const piece = board[r][c];
-                    if (piece && PIECE_IMAGES[piece]) {
-                        const img = document.createElement('img');
-                        img.src = PIECE_IMAGES[piece];
-                        img.className = 'chess-piece-img';
-                        square.appendChild(img);
+                    const isValid = validMoves.some(m => m.r === r && m.c === c);
+                    if (isValid) {
+                        const dot = document.createElement('div');
+                        dot.className = 'w-3.5 h-3.5 bg-emerald-500 rounded-full absolute z-20 shadow-md animate-bounce';
+                        square.appendChild(dot);
                     }
 
-                    if (c === 7) {
-                        const rankLabel = document.createElement('span');
-                        rankLabel.className = `absolute top-0.5 right-1 text-[10px] font-bold pointer-events-none ${isDark ? 'text-[#f0d9b5]' : 'text-[#b58863]'}`;
-                        rankLabel.textContent = 8 - r;
-                        square.appendChild(rankLabel);
-                    }
-                    if (r === 7) {
-                        const fileLabel = document.createElement('span');
-                        fileLabel.className = `absolute bottom-0.5 left-1 text-[10px] font-bold pointer-events-none ${isDark ? 'text-[#f0d9b5]' : 'text-[#b58863]'}`;
-                        fileLabel.textContent = files[c];
-                        square.appendChild(fileLabel);
+                    const piece = boardState[r][c];
+                    if (piece && pieceSvgs[piece]) {
+                        const pieceContainer = document.createElement('div');
+                        pieceContainer.className = 'transition-transform transform hover:scale-110 flex items-center justify-center';
+                        pieceContainer.innerHTML = pieceSvgs[piece];
+                        square.appendChild(pieceContainer);
                     }
 
                     square.onclick = () => handleSquareClick(r, c);
                     boardEl.appendChild(square);
                 }
             }
+            updateTurnIndicator();
+        }
 
-            document.getElementById('turnIndicator').textContent = turn === 'white' ? "White's Turn" : "Black's Turn";
+        function getValidMoves(r, c) {
+            const piece = boardState[r][c];
+            if (!piece) return [];
+            const isWhite = piece === piece.toUpperCase();
+            if ((turn === 'w' && !isWhite) || (turn === 'b' && isWhite)) return [];
+
+            const moves = [];
+            const p = piece.toLowerCase();
+
+            if (p === 'p') {
+                const dir = isWhite ? -1 : 1;
+                const startRow = isWhite ? 6 : 1;
+                if (r + dir >= 0 && r + dir < 8 && !boardState[r + dir][c]) {
+                    moves.push({ r: r + dir, c: c });
+                    if (r === startRow && !boardState[r + 2 * dir][c]) {
+                        moves.push({ r: r + 2 * dir, c: c });
+                    }
+                }
+                [-1, 1].forEach(dc => {
+                    const nc = c + dc;
+                    const nr = r + dir;
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = boardState[nr][nc];
+                        if (target && (isWhite ? target === target.toLowerCase() : target === target.toUpperCase())) {
+                            moves.push({ r: nr, c: nc });
+                        }
+                    }
+                });
+            } else if (p === 'r' || p === 'q') {
+                const directions = [{r:1, c:0}, {r:-1, c:0}, {r:0, c:1}, {r:0, c:-1}];
+                directions.forEach(d => {
+                    let nr = r + d.r, nc = c + d.c;
+                    while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = boardState[nr][nc];
+                        if (!target) {
+                            moves.push({ r: nr, c: nc });
+                        } else {
+                            if (isWhite ? target === target.toLowerCase() : target === target.toUpperCase()) {
+                                moves.push({ r: nr, c: nc });
+                            }
+                            break;
+                        }
+                        nr += d.r;
+                        nc += d.c;
+                    }
+                });
+            }
+            
+            if (p === 'b' || p === 'q') {
+                const directions = [{r:1, c:1}, {r:1, c:-1}, {r:-1, c:1}, {r:-1, c:-1}];
+                directions.forEach(d => {
+                    let nr = r + d.r, nc = c + d.c;
+                    while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = boardState[nr][nc];
+                        if (!target) {
+                            moves.push({ r: nr, c: nc });
+                        } else {
+                            if (isWhite ? target === target.toLowerCase() : target === target.toUpperCase()) {
+                                moves.push({ r: nr, c: nc });
+                            }
+                            break;
+                        }
+                        nr += d.r;
+                        nc += d.c;
+                    }
+                });
+            }
+
+            if (p === 'n') {
+                const jumps = [
+                    {r: -2, c: -1}, {r: -2, c: 1}, {r: -1, c: -2}, {r: -1, c: 2},
+                    {r: 1, c: -2}, {r: 1, c: 2}, {r: 2, c: -1}, {r: 2, c: 1}
+                ];
+                jumps.forEach(j => {
+                    const nr = r + j.r, nc = c + j.c;
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = boardState[nr][nc];
+                        if (!target || (isWhite ? target === target.toLowerCase() : target === target.toUpperCase())) {
+                            moves.push({ r: nr, c: nc });
+                        }
+                    }
+                });
+            }
+
+            if (p === 'k') {
+                const steps = [
+                    {r: -1, c: -1}, {r: -1, c: 0}, {r: -1, c: 1},
+                    {r: 0, c: -1}, {r: 0, c: 1},
+                    {r: 1, c: -1}, {r: 1, c: 0}, {r: 1, c: 1}
+                ];
+                steps.forEach(s => {
+                    const nr = r + s.r, nc = c + s.c;
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        const target = boardState[nr][nc];
+                        if (!target || (isWhite ? target === target.toLowerCase() : target === target.toUpperCase())) {
+                            moves.push({ r: nr, c: nc });
+                        }
+                    }
+                });
+            }
+
+            return moves;
         }
 
         function handleSquareClick(r, c) {
-            const piece = board[r][c];
-            const isWhitePiece = piece && piece === piece.toUpperCase();
-            const isBlackPiece = piece && piece === piece.toLowerCase();
+            const piece = boardState[r][c];
 
-            if (!selectedSquare) {
-                if ((turn === 'white' && isWhitePiece) || (turn === 'black' && isBlackPiece)) {
-                    selectedSquare = { r, c };
+            if (selectedSquare) {
+                const isValid = validMoves.some(m => m.r === r && m.c === c);
+                if (isValid) {
+                    const target = boardState[r][c];
+                    if (target) playChime('capture');
+                    else playChime('move');
+
+                    boardState[r][c] = boardState[selectedSquare.r][selectedSquare.c];
+                    boardState[selectedSquare.r][selectedSquare.c] = null;
+
+                    if (boardState[r][c] === 'P' && r === 0) boardState[r][c] = 'Q';
+                    if (boardState[r][c] === 'p' && r === 7) boardState[r][c] = 'q';
+
+                    selectedSquare = null;
+                    validMoves = [];
+                    turn = turn === 'w' ? 'b' : 'w';
                     renderBoard();
+
+                    if (isAIMode && turn === 'b') {
+                        setTimeout(makeAIMove, 500);
+                    }
+                    return;
                 }
+            }
+
+            if (piece && ((turn === 'w' && piece === piece.toUpperCase()) || (turn === 'b' && piece === piece.toLowerCase()))) {
+                selectedSquare = { r, c };
+                validMoves = getValidMoves(r, c);
+                renderBoard();
             } else {
-                if (selectedSquare.r === r && selectedSquare.c === c) {
-                    selectedSquare = null;
-                } else {
-                    board[r][c] = board[selectedSquare.r][selectedSquare.c];
-                    board[selectedSquare.r][selectedSquare.c] = '';
-                    selectedSquare = null;
-                    turn = turn === 'white' ? 'black' : 'white';
-                    speakText(turn === 'white' ? 'White turn' : 'Black turn');
-                }
+                selectedSquare = null;
+                validMoves = [];
                 renderBoard();
             }
         }
 
-        function resetGame() {
-            board = [
-                ['r','n','b','q','k','b','n','r'],
-                ['p','p','p','p','p','p','p','p'],
-                ['','','','','','','',''],
-                ['','','','','','','',''],
-                ['','','','','','','',''],
-                ['','','','','','','',''],
-                ['P','P','P','P','P','P','P','P'],
-                ['R','N','B','Q','K','B','N','R']
-            ];
-            turn = 'white';
-            selectedSquare = null;
+        function makeAIMove() {
+            let allMoves = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const p = boardState[r][c];
+                    if (p && p === p.toLowerCase()) {
+                        const moves = getValidMoves(r, c);
+                        moves.forEach(m => {
+                            allMoves.push({ from: { r, c }, to: m });
+                        });
+                    }
+                }
+            }
+
+            if (allMoves.length === 0) return;
+
+            let chosenMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+            if (aiDifficulty === 2) {
+                const captureMove = allMoves.find(m => boardState[m.to.r][m.to.c] !== null);
+                if (captureMove) chosenMove = captureMove;
+            }
+
+            const target = boardState[chosenMove.to.r][chosenMove.to.c];
+            if (target) playChime('capture');
+            else playChime('move');
+
+            boardState[chosenMove.to.r][chosenMove.to.c] = boardState[chosenMove.from.r][chosenMove.from.c];
+            boardState[chosenMove.from.r][chosenMove.from.c] = null;
+
+            if (boardState[chosenMove.to.r][chosenMove.to.c] === 'p' && chosenMove.to.r === 7) {
+                boardState[chosenMove.to.r][chosenMove.to.c] = 'q';
+            }
+
+            turn = 'w';
             renderBoard();
-            speakText('New game started. White goes first.');
         }
 
-        renderBoard();
+        function renderLessons() {
+            const tabsContainer = document.getElementById('lesson-tabs');
+            tabsContainer.innerHTML = '';
+
+            lessonsData.forEach((lesson, index) => {
+                const tab = document.createElement('button');
+                const isSelected = index === currentLessonIndex;
+                tab.className = `px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shadow-sm ${
+                    isSelected ? 'bg-slate-900 text-white shadow-slate-200' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                }`;
+                tab.innerText = lesson.title[currentLang].split(' ')[0] + ' ' + lesson.title[currentLang].split(' ')[1];
+                tab.onclick = () => {
+                    currentLessonIndex = index;
+                    renderLessons();
+                    renderLessonBoard();
+                };
+                tabsContainer.appendChild(tab);
+            });
+
+            const currentLesson = lessonsData[currentLessonIndex];
+            document.getElementById('lesson-title').innerText = currentLesson.title[currentLang];
+            document.getElementById('lesson-desc').innerText = currentLesson.desc[currentLang];
+            document.getElementById('lesson-progress-badge').innerText = `Lesson ${currentLessonIndex + 1} of ${lessonsData.length}`;
+
+            if (document.getElementById('autovoice-toggle').checked) {
+                speakCurrentLesson();
+            }
+        }
+
+        function renderLessonBoard() {
+            const boardEl = document.getElementById('lesson-board');
+            boardEl.innerHTML = '';
+            const lesson = lessonsData[currentLessonIndex];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const square = document.createElement('div');
+                    const isDark = (r + c) % 2 === 1;
+                    square.className = `flex items-center justify-center ${
+                        isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-100 text-zinc-900'
+                    }`;
+
+                    const item = lesson.setup.find(s => s.r === r && s.c === c);
+                    if (item && pieceSvgs[item.p]) {
+                        const pieceContainer = document.createElement('div');
+                        pieceContainer.innerHTML = pieceSvgs[item.p];
+                        square.appendChild(pieceContainer);
+                    }
+                    boardEl.appendChild(square);
+                }
+            }
+        }
+
+        function nextLesson() {
+            if (currentLessonIndex < lessonsData.length - 1) {
+                currentLessonIndex++;
+                renderLessons();
+                renderLessonBoard();
+            } else {
+                showToast('Congratulations! You completed all lessons!');
+                userStats.stars += 5;
+                document.getElementById('stat-stars').innerText = `⭐ ${userStats.stars}`;
+                playChime('win');
+            }
+        }
+
+        function prevLesson() {
+            if (currentLessonIndex > 0) {
+                currentLessonIndex--;
+                renderLessons();
+                renderLessonBoard();
+            }
+        }
+
+        function speakCurrentLesson() {
+            if (!('speechSynthesis' in window)) {
+                showToast('Text-to-speech not supported on this browser.');
+                return;
+            }
+
+            window.speechSynthesis.cancel();
+            const lesson = lessonsData[currentLessonIndex];
+            const textToSpeak = `${lesson.title[currentLang]}. ${lesson.desc[currentLang]}`;
+
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.lang = currentLang;
+            utterance.rate = 0.9;
+
+            window.speechSynthesis.speak(utterance);
+            showToast('Speaking lesson audio...');
+        }
+
+        function renderPuzzle() {
+            const boardEl = document.getElementById('puzzle-board');
+            boardEl.innerHTML = '';
+
+            const puzzleState = [
+                [null, null, null, null, null, null, null, 'k'],
+                [null, null, null, null, null, null, 'p', 'p'],
+                [null, null, null, null, null, null, null, 'Q'],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null],
+                [null, null, null, null, null, null, null, null]
+            ];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const square = document.createElement('div');
+                    const isDark = (r + c) % 2 === 1;
+                    square.className = `flex items-center justify-center cursor-pointer ${
+                        isDark ? 'bg-zinc-800 text-white' : 'bg-zinc-100 text-zinc-900'
+                    }`;
+
+                    const piece = puzzleState[r][c];
+                    if (piece && pieceSvgs[piece]) {
+                        const pieceContainer = document.createElement('div');
+                        pieceContainer.innerHTML = pieceSvgs[piece];
+                        square.appendChild(pieceContainer);
+                    }
+                    square.onclick = () => {
+                        if (r === 2 && c === 7) {
+                            playChime('win');
+                            showToast('Correct! Puzzle Solved! +3 Stars ⭐');
+                            userStats.stars += 3;
+                            document.getElementById('stat-stars').innerText = `⭐ ${userStats.stars}`;
+                        } else {
+                            showToast('Try moving the Queen to deliver checkmate!');
+                        }
+                    };
+                    boardEl.appendChild(square);
+                }
+            }
+        }
+
+        function resetPuzzle() {
+            renderPuzzle();
+            showToast('Puzzle reset.');
+        }
     </script>
 </body>
 </html>
