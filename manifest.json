@@ -1,0 +1,14 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "jysm-star.github",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "jysm-star.github",
+  "start_url": "https://jysm-star.github.io/chess-kids-app/",
+  "theme_color": "#ffffff",
+  "categories": [
+    "games"
+  ]
+}
