@@ -1,0 +1,14 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Chess &amp; Kids Academy",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "ChessAcademy",
+  "start_url": "/",
+  "theme_color": "#090d16",
+  "categories": [
+    "games"
+  ]
+}
